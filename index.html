@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bienvenido al Mundo Pokémon</title>
+  <!-- AOS CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" />
+  <style>
+    /* =================== ESTILOS GLOBALES =================== */
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(to right, #ffcc00, #ff5733);
+      color: white;
+      transition: background-color 0.3s ease;
+      margin: 0;
+      padding: 0;
+    }
+    body.dark-mode {
+      background: #333 !important;
+      color: #fff !important;
+    }
+    header {
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      color: white;
+      font-size: 28px;
+      font-weight: bold;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+    }
+    header h1 {
+      font-size: 36px;
+      margin: 5px;
+    }
+    header nav ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    header nav a {
+      color: white;
+      font-size: 18px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+    header nav a:hover {
+      color: #ffcc00;
+    }
+    .btn-entrar {
+      padding: 15px 30px;
+      font-size: 18px;
+      background-color: #ff5733;
+      border: none;
+      cursor: pointer;
+      border-radius: 15px;
+      color: white;
+      font-weight: bold;
+      transition: transform 0.3s, background-color 0.3s;
+      margin: 5px;
+    }
+    .btn-entrar:hover {
+      transform: scale(1.1);
+      background-color: #c70039;
+    }
+    /* =================== PANTALLA DE INICIO =================== */
+    .pantalla-inicio {
+      position: fixed;
+      width: 100%;
+      height: 100vh;
+      background-color: #ffcc00;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 1s ease-in-out;
+      z-index: 100;
+    }
+    .fondo-inicio {
+      max-width: 80%;
+      height: auto;
+      border-radius: 15px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    /* =================== CONTENEDORES Y TARJETAS =================== */
+    .pokemon-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      padding: 20px;
+    }
+    .pokemon-card {
+      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s, background-color 0.3s;
+      text-align: center;
+      width: 180px;
+      position: relative;
+    }
+    .pokemon-card:hover {
+      transform: scale(1.1);
+      background-color: #ffcc00;
+    }
+    .pokemon-card img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+    }
+    /* Animación para la captura */
+    .captured {
+      animation: bounce 1s;
+    }
+    @keyframes bounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    /* =================== POPUPS =================== */
+    .detalles-popup {
+      position: fixed;
+      top: 20%;
+      right: -300px;
+      width: 300px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 10;
+      transition: transform 0.5s ease-in-out;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .detalles-popup.show {
+      transform: translateX(-300px);
+    }
+    .detalles-popup h3 {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    .detalles-popup img {
+      max-width: 150px;
+      margin: 10px auto;
+      border-radius: 15px;
+      display: block;
+    }
+    /* =================== RESPONSIVE =================== */
+    @media (max-width: 600px) {
+      .pokemon-card {
+        width: 140px;
+      }
+      header nav ul {
+        flex-direction: column;
+      }
+      .detalles-popup {
+        width: 80%;
+        right: -80%;
+      }
+      .detalles-popup.show {
+        transform: translateX(-80%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- PANTALLA DE INICIO -->
+  <div id="inicio" class="pantalla-inicio">
+    <img src="https://th.bing.com/th/id/R.08c3fbb25bed0c57dd68b5e5270f113c?rik=7uQwKbYFxjre9g&pid=ImgRaw&r=0" alt="Pokémon" class="fondo-inicio">
+    <button id="entrar" class="btn-entrar">¡Comienza tu aventura Pokémon!</button>
+  </div>
+
+  <!-- ELEMENTOS DE AUDIO -->
+  <!-- Música ambiental: se incluyen tres opciones para elegir -->
+  <audio id="bg-music" loop>
+    <source src="https://assets.mixkit.co/music/preview/mixkit-epic-cinematic-ambition-362.mp3" type="audio/mpeg">
+  </audio>
+  <!-- Sonido de captura -->
+  <audio id="capture-sound">
+    <source src="https://www.soundjay.com/button/beep-07.wav" type="audio/wav">
+  </audio>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div id="contenido" class="oculto">
+    <header>
+      <h1>Bienvenido a tu propia aventura Pokémon <span id="trainer-name-display"></span></h1>
+      <div>
+        <button id="toggle-dark" class="btn-entrar">Modo Oscuro</button>
+        <button id="toggle-music" class="btn-entrar">Música: Off</button>
+        <select id="music-select" class="btn-entrar">
+          <option value="https://assets.mixkit.co/music/preview/mixkit-epic-cinematic-ambition-362.mp3">Tema Pokémon 1</option>
+          <option value="https://assets.mixkit.co/music/preview/mixkit-quiet-mysterious-ambience-275.mp3">Tema Pokémon 2</option>
+          <option value="https://assets.mixkit.co/music/preview/mixkit-fun-playful-happy-246.mp3">Tema Pokémon 3</option>
+        </select>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="#" id="nav-lista">Lista Pokémon</a></li>
+          <li><a href="#" id="nav-coleccion">Mi Colección</a></li>
+          <li><a href="#" id="nav-quiz">Quiz Pokémon</a></li>
+          <li><a href="#" id="nav-perfil">Perfil</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <!-- SECCIÓN LISTA POKÉMON -->
+      <section id="lista-section">
+        <h2 data-aos="fade-up">Elige tu Pokémon favorito</h2>
+        <input type="text" id="search" placeholder="Buscar Pokémon...">
+        <select id="type-filter">
+          <option value="">Todos los tipos</option>
+          <option value="fire">Fuego</option>
+          <option value="water">Agua</option>
+          <option value="grass">Planta</option>
+          <option value="electric">Eléctrico</option>
+        </select>
+        <button id="compare-btn" class="btn-entrar">Comparar Seleccionados</button>
+        <div id="pokemon-container" class="pokemon-container"></div>
+        <button id="load-more" class="btn-entrar">Cargar más Pokémon</button>
+      </section>
+      <!-- SECCIÓN MI COLECCIÓN -->
+      <section id="coleccion-section" style="display:none;">
+        <h2>Mi Colección</h2>
+        <div id="coleccion-container" class="pokemon-container"></div>
+      </section>
+      <!-- SECCIÓN QUIZ POKÉMON -->
+      <section id="quiz-section" style="display:none;">
+        <h2>Quiz Pokémon</h2>
+        <div id="quiz-container"></div>
+        <p id="quiz-result"></p>
+        <p>Puntaje: <span id="quiz-score">0</span></p>
+      </section>
+      <!-- SECCIÓN PERFIL DEL ENTRENADOR -->
+      <section id="perfil-section" style="display:none;">
+        <h2>Perfil del Entrenador</h2>
+        <form id="perfil-form">
+          <label for="trainer-name">Nombre de Entrenador:</label>
+          <input type="text" id="trainer-name" required>
+          <br><br>
+          <label for="trainer-avatar">Avatar:</label>
+          <select id="trainer-avatar">
+            <option value="ash">Ash</option>
+            <option value="misty">Misty</option>
+            <option value="brock">Brock</option>
+          </select>
+          <br><br>
+          <div id="avatar-preview" style="margin-bottom:10px;"></div>
+          <button type="submit" class="btn-entrar">Guardar Perfil</button>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <!-- POPUP PARA DETALLES DEL POKÉMON -->
+  <div id="pokemon-popup" class="detalles-popup">
+    <button id="close-popup" class="btn-entrar">Cerrar</button>
+    <h3 id="popup-name">Nombre del Pokémon</h3>
+    <img id="popup-img" src="" alt="Imagen del Pokémon">
+    <p><strong>Tipo:</strong> <span id="popup-type"></span></p>
+    <p><strong>Peso:</strong> <span id="popup-weight"></span> kg</p>
+    <p><strong>Altura:</strong> <span id="popup-height"></span> m</p>
+    <p><strong>Habilidades:</strong> <span id="popup-abilities"></span></p>
+    <p><strong>Estadísticas:</strong> <span id="popup-stats"></span></p>
+    <p><strong>Movimientos:</strong> <span id="popup-moves"></span></p>
+    <p><strong>Evolución:</strong> <span id="popup-evolution"></span></p>
+    <button id="share-btn" class="btn-entrar">Compartir</button>
+    <!-- Sección de comentarios -->
+    <div id="comments-section">
+      <h4>Comentarios</h4>
+      <div id="comments-list"></div>
+      <textarea id="comment-input" placeholder="Escribe un comentario..."></textarea>
+      <br>
+      <button id="submit-comment" class="btn-entrar">Enviar</button>
+    </div>
+  </div>
+
+  <!-- MODAL PARA COMPARADOR DE POKÉMON -->
+  <div id="compare-modal" class="detalles-popup" style="right: -400px; width:400px;">
+    <button id="close-compare" class="btn-entrar">Cerrar Comparación</button>
+    <h3>Comparador de Pokémon</h3>
+    <div id="compare-content"></div>
+  </div>
+
+  <!-- AOS JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+  <script>
+    AOS.init();
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // ELEMENTOS DE INICIO Y AUDIO
+      const btnEntrar = document.getElementById("entrar");
+      const inicio = document.getElementById("inicio");
+      const contenido = document.getElementById("contenido");
+      const bgMusic = document.getElementById("bg-music");
+      const captureSound = document.getElementById("capture-sound");
+
+      // ELEMENTOS DE NAVEGACIÓN
+      const navLista = document.getElementById("nav-lista");
+      const navColeccion = document.getElementById("nav-coleccion");
+      const navQuiz = document.getElementById("nav-quiz");
+      const navPerfil = document.getElementById("nav-perfil");
+      const listaSection = document.getElementById("lista-section");
+      const coleccionSection = document.getElementById("coleccion-section");
+      const quizSection = document.getElementById("quiz-section");
+      const perfilSection = document.getElementById("perfil-section");
+
+      // BOTONES DE OPCIONES
+      const toggleDark = document.getElementById("toggle-dark");
+      const toggleMusic = document.getElementById("toggle-music");
+      const musicSelect = document.getElementById("music-select");
+
+      // ELEMENTOS DE LA LISTA DE POKÉMON
+      const pokemonContainer = document.getElementById("pokemon-container");
+      const search = document.getElementById("search");
+      const typeFilter = document.getElementById("type-filter");
+      const loadMore = document.getElementById("load-more");
+      const compareBtn = document.getElementById("compare-btn");
+
+      // ELEMENTOS DEL POPUP
+      const pokemonPopup = document.getElementById("pokemon-popup");
+      const closePopup = document.getElementById("close-popup");
+      const shareBtn = document.getElementById("share-btn");
+      const commentsList = document.getElementById("comments-list");
+      const commentInput = document.getElementById("comment-input");
+      const submitComment = document.getElementById("submit-comment");
+
+      // ELEMENTOS DEL COMPARADOR
+      const compareModal = document.getElementById("compare-modal");
+      const closeCompare = document.getElementById("close-compare");
+      const compareContent = document.getElementById("compare-content");
+
+      // ELEMENTOS DEL PERFIL
+      const perfilForm = document.getElementById("perfil-form");
+      const trainerNameInput = document.getElementById("trainer-name");
+      const trainerAvatarSelect = document.getElementById("trainer-avatar");
+      const trainerNameDisplay = document.getElementById("trainer-name-display");
+      const avatarPreview = document.getElementById("avatar-preview");
+
+      // ELEMENTOS DEL QUIZ
+      const quizContainer = document.getElementById("quiz-container");
+      const quizResult = document.getElementById("quiz-result");
+      const quizScoreDisplay = document.getElementById("quiz-score");
+
+      // VARIABLES GLOBALES
+      let offset = 0;
+      let limit = 20;
+      let selectedForComparison = new Set();
+      let currentPokemonName = "";
+
+      // Variables para el Quiz
+      let currentQuizIndex = 0;
+      let quizScore = 0;
+      const quizQuestions = [
+        {
+          question: "¿Cuál es el tipo principal de Bulbasaur?",
+          options: ["Fuego", "Agua", "Planta", "Eléctrico"],
+          answer: "Planta"
+        },
+        {
+          question: "¿Qué Pokémon es conocido por decir 'Pika Pika'?",
+          options: ["Pikachu", "Charmander", "Squirtle", "Jigglypuff"],
+          answer: "Pikachu"
+        },
+        {
+          question: "¿Cuál es la evolución de Caterpie?",
+          options: ["Metapod", "Butterfree", "Weedle", "Pidgey"],
+          answer: "Metapod"
+        },
+        {
+          question: "¿Cuál es el Pokémon legendario de tipo Agua?",
+          options: ["Kyogre", "Moltres", "Articuno", "Mewtwo"],
+          answer: "Kyogre"
+        },
+        {
+          question: "¿Qué Pokémon es conocido por su capacidad de copiar movimientos?",
+          options: ["Ditto", "Eevee", "Snorlax", "Mew"],
+          answer: "Ditto"
+        },
+        {
+          question: "¿Cuál es el Pokémon de tipo Roca que evoluciona a Golem?",
+          options: ["Geodude", "Onix", "Rhyhorn", "Kabuto"],
+          answer: "Geodude"
+        },
+        {
+          question: "¿Qué Pokémon es conocido como el 'Pokémon Rayo'?",
+          options: ["Electabuzz", "Jolteon", "Zapdos", "Pikachu"],
+          answer: "Zapdos"
+        }
+      ];
+
+      // Mapeo de avatares para el perfil
+      const avatarMap = {
+        ash: "https://archives.bulbagarden.net/media/upload/0/0a/Ash_SM.png",
+        misty: "https://archives.bulbagarden.net/media/upload/4/4c/Misty_SM.png",
+        brock: "https://archives.bulbagarden.net/media/upload/6/64/Brock_SM.png"
+      };
+
+      // Recuperar perfil del entrenador de localStorage
+      if(localStorage.getItem("trainerProfile")){
+        const profile = JSON.parse(localStorage.getItem("trainerProfile"));
+        trainerNameDisplay.textContent = " - Entrenador: " + profile.name;
+      }
+
+      // =================== INICIO DE LA AVENTURA ===================
+      btnEntrar.addEventListener("click", () => {
+        inicio.style.display = "none";
+        contenido.classList.remove("oculto");
+        cargarPokemones();
+        autoToggleDarkMode();
+        loadQuizQuestion();
+      });
+
+      // =================== MODO OSCURO ===================
+      toggleDark.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+      });
+      function autoToggleDarkMode(){
+        const hour = new Date().getHours();
+        if(hour >= 18 || hour < 6){
+          document.body.classList.add("dark-mode");
+        }
+      }
+
+      // =================== MÚSICA AMBIENTAL ===================
+      let musicPlaying = false;
+      toggleMusic.addEventListener("click", () => {
+        if(musicPlaying){
+          bgMusic.pause();
+          toggleMusic.textContent = "Música: Off";
+        } else {
+          bgMusic.volume = 0.5; // Ajuste de volumen
+          bgMusic.play();
+          toggleMusic.textContent = "Música: On";
+        }
+        musicPlaying = !musicPlaying;
+      });
+      musicSelect.addEventListener("change", () => {
+        bgMusic.src = musicSelect.value;
+        if(musicPlaying){
+          bgMusic.play();
+        }
+      });
+
+      // =================== NAVEGACIÓN ENTRE SECCIONES ===================
+      navLista.addEventListener("click", () => {
+        listaSection.style.display = "block";
+        coleccionSection.style.display = "none";
+        quizSection.style.display = "none";
+        perfilSection.style.display = "none";
+        // Si aún no se han cargado los Pokémon, cargarlos.
+        if(pokemonContainer.childElementCount === 0){
+          cargarPokemones();
+        }
+      });
+      navColeccion.addEventListener("click", () => {
+        listaSection.style.display = "none";
+        coleccionSection.style.display = "block";
+        quizSection.style.display = "none";
+        perfilSection.style.display = "none";
+        loadColeccion();
+      });
+      navQuiz.addEventListener("click", () => {
+        listaSection.style.display = "none";
+        coleccionSection.style.display = "none";
+        quizSection.style.display = "block";
+        perfilSection.style.display = "none";
+      });
+      navPerfil.addEventListener("click", () => {
+        listaSection.style.display = "none";
+        coleccionSection.style.display = "none";
+        quizSection.style.display = "none";
+        perfilSection.style.display = "block";
+      });
+
+      // =================== CARGA DE POKÉMON ===================
+      const pokemonCache = {};
+      function cargarPokemones() {
+        fetch(`https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`)
+          .then(response => response.json())
+          .then(data => {
+            data.results.forEach((pokemon, index) => {
+              const card = document.createElement("div");
+              card.className = "pokemon-card";
+              card.id = "card-" + pokemon.name;
+              card.setAttribute("data-aos", "fade-up");
+              card.innerHTML = `
+                <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${offset + index + 1}.png" alt="${pokemon.name}">
+                <h3>${pokemon.name.toUpperCase()}</h3>
+                <button class="btn-entrar capture-btn">Capturar</button>
+                <br>
+                <input type="checkbox" class="compare-checkbox" title="Seleccionar para comparar">
+              `;
+              // Botón de captura
+              card.querySelector(".capture-btn").addEventListener("click", (e) => {
+                e.stopPropagation();
+                fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`)
+                  .then(r => r.json())
+                  .then(details => {
+                    const pokemonData = {
+                      name: pokemon.name,
+                      img: details.sprites.other["official-artwork"].front_default,
+                      types: details.types.map(t => t.type.name)
+                    };
+                    capturarPokemon(pokemonData);
+                  });
+              });
+              // Al hacer clic en la tarjeta se muestran detalles
+              card.addEventListener("click", () => cargarDetalles(pokemon.name, card));
+              // Guardar el tipo para el filtro
+              fetch(pokemon.url)
+                .then(r => r.json())
+                .then(details => {
+                  card.dataset.types = details.types.map(t => t.type.name).join(",");
+                  pokemonCache[pokemon.name] = details;
+                });
+              pokemonContainer.appendChild(card);
+            });
+            offset += limit;
+          });
+      }
+      // Event listener para el botón "Cargar más Pokémon"
+      loadMore.addEventListener("click", () => {
+        cargarPokemones();
+      });
+
+      function capturarPokemon(pokemonData){
+        let captured = JSON.parse(localStorage.getItem("capturedPokemons")) || [];
+        if(!captured.find(p => p.name === pokemonData.name)){
+          captured.push(pokemonData);
+          localStorage.setItem("capturedPokemons", JSON.stringify(captured));
+          captureSound.play();
+          const card = document.getElementById("card-" + pokemonData.name);
+          if(card){
+            card.classList.add("captured");
+            setTimeout(() => { card.classList.remove("captured"); }, 1000);
+          }
+        }
+      }
+      function loadColeccion(){
+        const coleccionContainer = document.getElementById("coleccion-container");
+        coleccionContainer.innerHTML = "";
+        let captured = JSON.parse(localStorage.getItem("capturedPokemons")) || [];
+        captured.forEach(pokemon => {
+          const card = document.createElement("div");
+          card.className = "pokemon-card";
+          card.setAttribute("data-aos", "fade-up");
+          card.innerHTML = `
+            <img src="${pokemon.img}" alt="${pokemon.name}">
+            <h3>${pokemon.name.toUpperCase()}</h3>
+          `;
+          coleccionContainer.appendChild(card);
+        });
+      }
+
+      // =================== POPUP DE DETALLES ===================
+      function cargarDetalles(nombre, cardElement) {
+        if(pokemonCache[nombre]){
+          mostrarDetalles(pokemonCache[nombre]);
+        } else {
+          fetch(`https://pokeapi.co/api/v2/pokemon/${nombre}`)
+            .then(response => response.json())
+            .then(details => {
+              pokemonCache[nombre] = details;
+              mostrarDetalles(details);
+            });
+        }
+      }
+      function mostrarDetalles(pokemon) {
+        currentPokemonName = pokemon.name;
+        document.getElementById("popup-name").textContent = pokemon.name.toUpperCase();
+        document.getElementById("popup-img").src = pokemon.sprites.other["official-artwork"].front_default;
+        document.getElementById("popup-type").textContent = pokemon.types.map(t => t.type.name).join(", ");
+        document.getElementById("popup-weight").textContent = pokemon.weight / 10;
+        document.getElementById("popup-height").textContent = pokemon.height / 10;
+        document.getElementById("popup-abilities").textContent = pokemon.abilities.map(a => a.ability.name).join(", ");
+        const statsText = pokemon.stats.map(s => `${s.stat.name}: ${s.base_stat}`).join(" | ");
+        document.getElementById("popup-stats").textContent = statsText;
+        const movesText = pokemon.moves.slice(0,5).map(m => m.move.name).join(", ");
+        document.getElementById("popup-moves").textContent = movesText;
+        fetch(pokemon.species.url)
+          .then(r => r.json())
+          .then(speciesData => fetch(speciesData.evolution_chain.url))
+          .then(r => r.json())
+          .then(evoData => {
+            const evoChain = [];
+            let evo = evoData.chain;
+            do {
+              evoChain.push(evo.species.name);
+              evo = evo.evolves_to[0];
+            } while(evo && evo.hasOwnProperty('evolves_to'));
+            document.getElementById("popup-evolution").textContent = evoChain.join(" -> ");
+          });
+        loadComments(pokemon.name);
+        pokemonPopup.style.display = "block";
+        pokemonPopup.classList.add("show");
+      }
+      closePopup.addEventListener("click", () => {
+        pokemonPopup.classList.remove("show");
+        setTimeout(() => { pokemonPopup.style.display = "none"; }, 500);
+      });
+      shareBtn.addEventListener("click", () => {
+        if(navigator.share){
+          navigator.share({
+            title: currentPokemonName.toUpperCase(),
+            text: `Mira este Pokémon: ${currentPokemonName.toUpperCase()}`,
+            url: window.location.href
+          });
+        } else {
+          alert("Compartir no es soportado en este navegador.");
+        }
+      });
+      function loadComments(pokemonName) {
+        commentsList.innerHTML = "";
+        const comments = JSON.parse(localStorage.getItem("comments-" + pokemonName)) || [];
+        comments.forEach(comment => {
+          const p = document.createElement("p");
+          p.textContent = comment;
+          commentsList.appendChild(p);
+        });
+      }
+      submitComment.addEventListener("click", () => {
+        const comment = commentInput.value.trim();
+        if(comment){
+          let comments = JSON.parse(localStorage.getItem("comments-" + currentPokemonName)) || [];
+          comments.push(comment);
+          localStorage.setItem("comments-" + currentPokemonName, JSON.stringify(comments));
+          commentInput.value = "";
+          loadComments(currentPokemonName);
+        }
+      });
+
+      // =================== COMPARADOR DE POKÉMON ===================
+      function attachCheckboxListeners(){
+        document.querySelectorAll(".compare-checkbox").forEach(checkbox => {
+          checkbox.addEventListener("change", function(e){
+            const card = e.target.closest(".pokemon-card");
+            const name = card.querySelector("h3").textContent.toLowerCase();
+            if(this.checked){
+              selectedForComparison.add(name);
+            } else {
+              selectedForComparison.delete(name);
+            }
+          });
+        });
+      }
+      const observer = new MutationObserver(() => {
+        attachCheckboxListeners();
+      });
+      observer.observe(pokemonContainer, { childList: true, subtree: true });
+      compareBtn.addEventListener("click", () => {
+        compareContent.innerHTML = "";
+        if(selectedForComparison.size < 2){
+          alert("Selecciona al menos 2 Pokémon para comparar.");
+          return;
+        }
+        selectedForComparison.forEach(name => {
+          if(pokemonCache[name]){
+            const div = document.createElement("div");
+            div.style.border = "1px solid white";
+            div.style.margin = "5px";
+            div.style.padding = "5px";
+            div.innerHTML = `
+              <h4>${pokemonCache[name].name.toUpperCase()}</h4>
+              <img src="${pokemonCache[name].sprites.other["official-artwork"].front_default}" alt="${pokemonCache[name].name}" style="width:100px;">
+              <p>${pokemonCache[name].stats.map(s => `${s.stat.name}: ${s.base_stat}`).join(" | ")}</p>
+            `;
+            compareContent.appendChild(div);
+          }
+        });
+        compareModal.style.display = "block";
+        compareModal.classList.add("show");
+        compareModal.style.transform = "translateX(-400px)";
+      });
+      closeCompare.addEventListener("click", () => {
+        compareModal.classList.remove("show");
+        setTimeout(() => { compareModal.style.display = "none"; }, 500);
+      });
+
+      // =================== QUIZ POKÉMON ===================
+      function loadQuizQuestion(){
+        if(currentQuizIndex >= quizQuestions.length){
+          quizContainer.innerHTML = `<p>¡Fin del Quiz! Puntaje final: ${quizScore}</p>
+                                      <button class="btn-entrar" onclick="location.reload()">Reiniciar Quiz</button>`;
+          return;
+        }
+        const currentQuestion = quizQuestions[currentQuizIndex];
+        let optionsHTML = "";
+        currentQuestion.options.forEach(opt => {
+          optionsHTML += `<button class="btn-entrar quiz-option" data-answer="${opt}">${opt}</button>`;
+        });
+        quizContainer.innerHTML = `<p>${currentQuestion.question}</p>${optionsHTML}`;
+        // Agregar evento a cada opción
+        document.querySelectorAll(".quiz-option").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const selected = btn.getAttribute("data-answer");
+            if(selected === currentQuestion.answer){
+              quizResult.textContent = "¡Correcto!";
+              quizScore += 10;
+            } else {
+              quizResult.textContent = "Incorrecto.";
+            }
+            quizScoreDisplay.textContent = quizScore;
+            currentQuizIndex++;
+            setTimeout(() => {
+              quizResult.textContent = "";
+              loadQuizQuestion();
+            }, 1500);
+          });
+        });
+      }
+
+      // =================== PERFIL DEL ENTRENADOR ===================
+      // Actualiza vista previa del avatar
+      trainerAvatarSelect.addEventListener("change", () => {
+        const avatarValue = trainerAvatarSelect.value;
+        if(avatarMap[avatarValue]){
+          avatarPreview.innerHTML = `<img src="${avatarMap[avatarValue]}" alt="${avatarValue}" style="width:100px; border-radius:50%;">`;
+        }
+      });
+      // Mostrar avatar inicial según selección por defecto
+      trainerAvatarSelect.dispatchEvent(new Event("change"));
+      perfilForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = trainerNameInput.value.trim();
+        const avatar = trainerAvatarSelect.value;
+        if(name){
+          const profile = { name, avatar };
+          localStorage.setItem("trainerProfile", JSON.stringify(profile));
+          trainerNameDisplay.textContent = " - Entrenador: " + name;
+          alert("Perfil guardado");
+        }
+      });
+
+      // =================== GESTOS TÁCTILES PARA CERRAR POPUP ===================
+      let touchStartY = 0;
+      pokemonPopup.addEventListener("touchstart", (e) => { touchStartY = e.touches[0].clientY; });
+      pokemonPopup.addEventListener("touchmove", (e) => {
+        let touchEndY = e.touches[0].clientY;
+        if(touchEndY - touchStartY > 100){
+          closePopup.click();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
