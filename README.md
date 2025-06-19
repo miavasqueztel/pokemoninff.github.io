@@ -18,4 +18,4 @@ Estilo visual amigable y temático, que evoca el mundo Pokémon con colores vivo
 
 ![Vista previa de PokémonInff](https://i.ibb.co/9kv51XTr/imageone.jpg)
 ![Vista previa 2](https://i.ibb.co/bxrpXML/imagetwo.jpg)
-![Vista previa 3](https://i.ibb.co/xSLMz16k/image3.jpg)
+
